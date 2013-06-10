@@ -1,4 +1,4 @@
-Source: visualization.waveform
+Source: xbmc-visualization-waveform
 Priority: extra
 Maintainer: Arne Morten Kvarving <spiff@xbmc.org>
 Build-Depends: debhelper (>= 8.0.0), cmake, xbmc-addon-dev,
