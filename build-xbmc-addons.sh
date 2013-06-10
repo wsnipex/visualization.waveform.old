@@ -10,7 +10,8 @@ BUILDER=${BUILDER:-"debuild"}
 DEBUILD_OPTS=${DEBUILD_OPTS:-""}
 PDEBUILD_OPTS=${PDEBUILD_OPTS:-""}
 PBUILDER_BASE=${PBUILDER_BASE:-"/var/cache/pbuilder"}
-DPUT_TARGET=${DPUT_TARGET:-"local"} 
+DPUT_TARGET=${DPUT_TARGET:-"local"}
+PPA_UPLOAD=${PPA_UPLOAD:-"False"}
 
 declare -A ALL_ADDONS=(
     ["visualization.waveform"]="https://github.com/wsnipex/visualization.waveform/archive/${BRANCH}.tar.gz"
@@ -52,6 +53,7 @@ function checkEnv {
         echo "PDEBUILD_OPTS: $PDEBUILD_OPTS"
     else
         echo "DEBUILD_OPTS: $DEBUILD_OPTS"
+        [[ "PPA_UPLOAD" == "True" ]] && echo "PPA_UPLOAD: $PPA_UPLOAD"
     fi
 
     echo "#-------------------------------#"
@@ -109,8 +111,12 @@ function uploadPkg {
         echo "uploading $PKG to $DPUT_TARGET"
         dput $DPUT_TARGET $PKG
         UPLOAD_DONE=$?
+    elif [[ "PPA_UPLOAD" == "True" ]]
+    then
+        echo "uploading $changes to $DPUT_TARGET"
+        dput $DPUT_TARGET $changes
     else
-        ls -l $changes
+        ls -l *.deb
     fi
 }
 
