@@ -3,7 +3,7 @@
 RELEASEV=${RELEASEV:-"auto"}
 BRANCH=${BRANCH:-"master"}
 TAG=${TAG:-"1"}
-REPO_DIR=${WORKSPACE:-$(cd "$(dirname $0)/../../../" ; pwd)}
+WORK_DIR=${WORKSPACE:-$(pwd)}
 [[ $(which lsb_release) ]] && DISTS=${DISTS:-$(lsb_release -cs)} || DISTS=${DISTS:-"stable"}
 ARCHS=${ARCHS:-$(dpkg --print-architecture)}
 BUILDER=${BUILDER:-"debuild"}
@@ -14,23 +14,22 @@ DPUT_TARGET=${DPUT_TARGET:-"local"}
 
 declare -A ALL_ADDONS=(
     ["visualization.waveform"]="https://github.com/wsnipex/visualization.waveform/archive/${BRANCH}.tar.gz"
-    ["foobar"]="https://github.com/cptspiff/visualization.waveform/archive/${BRANCH}.foo"
+    #["foobar"]="https://github.com/cptspiff/visualization.waveform/archive/${BRANCH}.foo"
 )
 
 ADDONS=${ADDONS:-${!ALL_ADDONS[@]}}
 
 
 function buildDebianPackages {
-    archiveRepo
-    cd $REPO_DIR || exit 1
-    sed -e "s/#PACKAGEVERSION#/${packageversion}/g" -e "s/#TAGREV#/${TAG}/g" debian/changelog.in > debian/changelog.tmp
-
+    #cd $WORK_DIR || exit 1
+    
     for dist in $DISTS
     do
         sed "s/#DIST#/${dist}/g" debian/changelog.tmp > debian/changelog
+        dch --release  ""
         for arch in $ARCHS
         do
-            cd $REPO_DIR
+            cd $WORK_DIR
             echo "building: DIST=$dist ARCH=$arch"
             if [[ "$BUILDER" =~ "pdebuild" ]]
             then
@@ -38,7 +37,7 @@ function buildDebianPackages {
                 [ $? -eq 0 ] && uploadPkg || exit 1
             else
                 $BUILDER $DEBUILD_OPTS
-                echo "output directory: $REPO_DIR/.."
+                echo "output directory: $WORK_DIR/.."
             fi
         done
     done
@@ -57,6 +56,7 @@ do
     #cd ..
     mv ${BRANCH}.tar.gz ${packagename}_${packageversion}.orig.tar.gz
     cd ${addon}-${BRANCH}
+    sed -e "s/#PACKAGEVERSION#/${packageversion}/g" -e "s/#TAGREV#/${TAG}/g" debian/changelog.in > debian/changelog.tmp
     buildDebianPackages
     #debuild
     #rm -rf $addon.tmp
